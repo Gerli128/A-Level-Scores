@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>CIE A-Level — two-mode predictor</title>
+  <title>CIE A-Level — two-mode predictor (updated)</title>
   <style>
     :root{--bg:#071226;--card:#0b1726;--muted:#9fb0c8;--accent:#60a5fa;--text:#e8f2fb;--big:32px;--med:16px}
     *{box-sizing:border-box}
@@ -33,8 +33,8 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>CIE A-Level — quick predictor</h1>
-      <div class="small">Choose one of the two actions below.</div>
+      <h1>CIE A-Level — quick predictor (updated)</h1>
+      <div class="small">Two actions: (A) Enter predicted A2 raw → get final grade/PUM. (B) Enter score you want → overall/ per-paper options.</div>
     </div>
 
     <div class="card">
@@ -55,14 +55,14 @@
 
       <!-- PREDICTED A2 RAW -->
       <div id="predictedArea" style="margin-top:12px">
-        <label for="predA2">Predicted A2 raw (integer)</label>
+        <label id="predA2Label" for="predA2">Predicted A2 raw (max: — )</label>
         <input id="predA2" type="number" step="1" min="0" placeholder="e.g. 120">
         <div class="row"><button id="calcPred" class="btn">Get final grade & PUM</button></div>
       </div>
 
       <!-- TARGET (has two sub-options) -->
       <div id="targetArea" style="display:none;margin-top:12px">
-        <div class="small">Two sub-options inside "score you want": Overall target OR Per-paper target.</div>
+        <div class="small">Two sub-options inside "score you want": Overall target or Per-paper target.</div>
         <div class="subBtns">
           <button id="subOverall" class="subBtn active">Overall target</button>
           <button id="subPaper" class="subBtn">Per-paper</button>
@@ -79,7 +79,7 @@
         <div id="paperTarget" style="display:none;margin-top:10px">
           <label for="targetPaper">Enter target grade or PUM (A*/A/B/... or integer PUM)</label>
           <input id="targetPaper" placeholder="e.g. A or 95">
-          <div class="small" style="margin-top:8px">For each A2 paper you can either <strong>Enter raw</strong> or <strong>Solve for this paper</strong>. Exactly one paper may be Solve.</div>
+          <div class="small" style="margin-top:8px">For each A2 paper choose either <strong>Enter raw</strong> or <strong>Solve for this paper</strong>. Exactly one paper may be Solve. Raw inputs must be integers within the paper max.</div>
           <div id="papersArea" style="margin-top:8px"></div>
           <div class="row" style="margin-top:10px"><button id="calcPaperTarget" class="btn">Calculate per-paper result</button></div>
         </div>
@@ -95,7 +95,7 @@
   </div>
 
 <script>
-/* ===== DATA ===== */
+/* ===== DATA (same anchors and per-paper config) ===== */
 const DATA = {
   "Mathematics":{ alevel:{max_raw:250,anchors:[{raw:0,pum:0},{raw:56,pum:40},{raw:90,pum:50},{raw:125,pum:60},{raw:160,pum:70},{raw:188,pum:80},{raw:217,pum:90},{raw:250,pum:100}]}, as:{max_raw:125,anchors:[{raw:0,pum:0},{raw:27,pum:40},{raw:45,pum:50},{raw:63,pum:60},{raw:83,pum:70},{raw:98,pum:80},{raw:113,pum:90},{raw:125,pum:100}]}, a2_papers:[{id:'p3',name:'Paper 3 (Pure)',max:75},{id:'p4',name:'Paper 4 (Mechanics)',max:50}] },
   "Physics":{ alevel:{max_raw:260,anchors:[{raw:0,pum:0},{raw:76,pum:40},{raw:101,pum:50},{raw:127,pum:60},{raw:154,pum:70},{raw:179,pum:80},{raw:205,pum:90},{raw:260,pum:100}]}, as:{max_raw:130,anchors:[{raw:0,pum:0},{raw:45,pum:40},{raw:58,pum:50},{raw:71,pum:60},{raw:84,pum:70},{raw:96,pum:80},{raw:113,pum:90},{raw:130,pum:100}]}, a2_papers:[{id:'p4',name:'Paper 4 (Theory)',max:100},{id:'p5',name:'Paper 5 (Analysis)',max:30}] },
@@ -106,7 +106,7 @@ const DATA = {
   "Economics":{ alevel:{max_raw:180,anchors:[{raw:0,pum:0},{raw:59,pum:40},{raw:70,pum:50},{raw:82,pum:60},{raw:94,pum:70},{raw:108,pum:80},{raw:123,pum:90},{raw:180,pum:100}]}, as:{max_raw:90,anchors:[{raw:0,pum:0},{raw:24,pum:40},{raw:29,pum:50},{raw:35,pum:60},{raw:42,pum:70},{raw:48,pum:80},{raw:72,pum:90},{raw:90,pum:100}]}, a2_papers:[{id:'p3',name:'Paper 3 (MCQ)',max:30},{id:'p4',name:'Paper 4 (Essay)',max:60}] }
 };
 
-/* ===== helper interpolation =====
+/* ===== interpolation helpers =====
    raw -> PUM: floor
    pum -> raw nearest
    required outputs: ceil
@@ -156,6 +156,7 @@ const btnPred = document.getElementById('btnPred');
 const btnTarget = document.getElementById('btnTarget');
 const predictedArea = document.getElementById('predictedArea');
 const targetArea = document.getElementById('targetArea');
+const predA2Label = document.getElementById('predA2Label');
 const predA2Input = document.getElementById('predA2');
 const calcPred = document.getElementById('calcPred');
 
@@ -172,32 +173,38 @@ const calcPaperTarget = document.getElementById('calcPaperTarget');
 const mainOutput = document.getElementById('mainOutput');
 const subOutput = document.getElementById('subOutput');
 
-/* populate subjects */
+/* populate subjects and set pred label */
 Object.keys(DATA).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; subjectSel.appendChild(o); });
 subjectSel.value = Object.keys(DATA)[0];
-buildPapersUI();
+updatePredLabel(); buildPapersUI();
+
+subjectSel.addEventListener('change', ()=>{ updatePredLabel(); buildPapersUI(); resetOutputs(); });
+
+function updatePredLabel(){
+  const subj = subjectSel.value;
+  const a2Max = DATA[subj].alevel.max_raw - DATA[subj].as.max_raw;
+  predA2Label.textContent = `Predicted A2 raw (max: ${a2Max})`;
+}
+
+function resetOutputs(){ mainOutput.textContent='No calculation yet.'; subOutput.textContent=''; }
 
 /* primary action toggles */
 btnPred.addEventListener('click', ()=>{
   btnPred.classList.add('active'); btnTarget.classList.remove('active');
   predictedArea.style.display='block'; targetArea.style.display='none';
-  mainOutput.textContent='No calculation yet.'; subOutput.textContent='';
+  resetOutputs();
 });
 btnTarget.addEventListener('click', ()=>{
   btnTarget.classList.add('active'); btnPred.classList.remove('active');
   targetArea.style.display='block'; predictedArea.style.display='none';
-  mainOutput.textContent='No calculation yet.'; subOutput.textContent='';
+  resetOutputs();
 });
 
-/* target sub-options */
-subOverall.addEventListener('click', ()=>{ subOverall.classList.add('active'); subPaper.classList.remove('active'); overallTarget.style.display='block'; paperTarget.style.display='none'; mainOutput.textContent='No calculation yet.'; subOutput.textContent=''; });
-subPaper.addEventListener('click', ()=>{ subPaper.classList.add('active'); subOverall.classList.remove('active'); overallTarget.style.display='none'; paperTarget.style.display='block'; buildPapersUI(); mainOutput.textContent='No calculation yet.'; subOutput.textContent=''; });
+/* target sub-option toggles */
+subOverall.addEventListener('click', ()=>{ subOverall.classList.add('active'); subPaper.classList.remove('active'); overallTarget.style.display='block'; paperTarget.style.display='none'; resetOutputs(); });
+subPaper.addEventListener('click', ()=>{ subPaper.classList.add('active'); subOverall.classList.remove('active'); overallTarget.style.display='none'; paperTarget.style.display='block'; buildPapersUI(); resetOutputs(); });
 
-subjectSel.addEventListener('change', ()=>{ buildPapersUI(); resetOutputs(); });
-
-function resetOutputs(){ mainOutput.textContent='No calculation yet.'; subOutput.textContent=''; }
-
-/* build per-paper UI */
+/* build papers UI */
 function buildPapersUI(){
   const subj = subjectSel.value;
   const papers = DATA[subj].a2_papers || [];
@@ -214,61 +221,71 @@ function buildPapersUI(){
   });
 }
 
-/* ---------- Predicted A2 raw flow ---------- */
+/* ---------- Predicted A2 flow ---------- */
 calcPred.addEventListener('click', ()=>{
   const subj = subjectSel.value;
   const asVal = Number(asScoreInput.value);
-  if(!Number.isInteger(asVal) || asVal<0 || asVal>100){ alert('Enter AS score as integer 0–100'); return; }
-  // estimate AS raw from AS PUM
+  if(!Number.isInteger(asVal) || asVal < 0 || asVal > 100){ alert('Enter AS score as integer 0–100'); return; }
   const estASraw = interpPumToRawNearest(DATA[subj].as.anchors, asVal);
-  let predA2 = Math.floor(Number(predA2Input.value) || 0); if(predA2<0) predA2=0;
+  let predA2 = Math.floor(Number(predA2Input.value) || 0);
+  if(predA2 < 0) predA2 = 0;
   const totalRaw = estASraw + predA2;
   const finalPum = interpRawToPum(DATA[subj].alevel.anchors, totalRaw);
   const grade = pumToGrade(finalPum);
   mainOutput.textContent = `${grade} — ${finalPum} PUM`;
   subOutput.textContent = `Total raw (AS est ${estASraw} + A2 ${predA2}) = ${totalRaw} / ${DATA[subj].alevel.max_raw}`;
+
+  // UPDATE target inputs to achieved final (respect user's input type)
+  updateTargetInputsWithAchieved(finalPum);
 });
 
 /* ---------- Overall target flow ---------- */
 calcOverall.addEventListener('click', ()=>{
   const subj = subjectSel.value;
   const asVal = Number(asScoreInput.value);
-  if(!Number.isInteger(asVal) || asVal<0 || asVal>100){ alert('Enter AS score as integer 0–100'); return; }
+  if(!Number.isInteger(asVal) || asVal < 0 || asVal > 100){ alert('Enter AS score as integer 0–100'); return; }
   const estASraw = interpPumToRawNearest(DATA[subj].as.anchors, asVal);
+
   const t = targetOverall.value.trim();
   if(!t){ alert('Enter target grade or integer PUM'); return; }
   const gradeMap = {'A*':90,'A':80,'B':70,'C':60,'D':50,'E':40};
   let targetPum = null;
   if(/^[0-9]+$/.test(t)) targetPum = Number(t);
-  else { const up=t.toUpperCase(); if(gradeMap[up]!==undefined) targetPum=gradeMap[up]; else { alert('Unknown target'); return; } }
+  else { const up = t.toUpperCase(); if(gradeMap[up]!==undefined) targetPum = gradeMap[up]; else { alert('Unknown target'); return; } }
+
   let reqTotalNearest = interpPumToRawNearest(DATA[subj].alevel.anchors, targetPum);
   if(reqTotalNearest===null){ mainOutput.textContent='Error'; subOutput.textContent='Missing data'; return; }
   const reqTotal = Math.ceil(reqTotalNearest);
   const reqA2raw = Math.ceil(reqTotal - estASraw);
   const a2max = DATA[subj].alevel.max_raw - DATA[subj].as.max_raw;
-  if(reqA2raw <= 0){ mainOutput.textContent='Already achieved'; subOutput.textContent=`AS estimate ${estASraw} already meets target ${targetPum}`; return; }
-  if(reqA2raw > a2max){ mainOutput.textContent='Impossible'; subOutput.textContent=`Required A2 raw ${reqA2raw} exceeds A2 max ${a2max}`; return; }
+
+  if(reqA2raw <= 0){ mainOutput.textContent='Already achieved'; subOutput.textContent = `AS estimate ${estASraw} already meets target ${targetPum}`; return; }
+  if(reqA2raw > a2max){ mainOutput.textContent='Impossible'; subOutput.textContent = `Required A2 raw ${reqA2raw} exceeds A2 max ${a2max}`; return; }
+
   let pctText='N/A';
   if(estASraw>0){ const diff=reqA2raw - estASraw; const pct=Math.round((diff/estASraw)*100); pctText = pct>0? `${pct}% more than AS` : pct<0? `${Math.abs(pct)}% less than AS` : 'Same as AS'; }
   mainOutput.textContent = `${reqA2raw} raw (A2 required)`;
   subOutput.textContent = `${pctText}. Required total raw (AS + A2): ${reqTotal} / ${DATA[subj].alevel.max_raw}`;
 });
 
-/* ---------- Per-paper target flow ---------- */
+/* ---------- Per-paper target flow (no % shown for per-paper) ---------- */
 calcPaperTarget.addEventListener('click', ()=>{
   const subj = subjectSel.value;
   const asVal = Number(asScoreInput.value);
-  if(!Number.isInteger(asVal) || asVal<0 || asVal>100){ alert('Enter AS score as integer 0–100'); return; }
+  if(!Number.isInteger(asVal) || asVal < 0 || asVal > 100){ alert('Enter AS score as integer 0–100'); return; }
   const estASraw = interpPumToRawNearest(DATA[subj].as.anchors, asVal);
+
   const t = targetPaper.value.trim();
   if(!t){ alert('Enter target grade or integer PUM'); return; }
   const gradeMap = {'A*':90,'A':80,'B':70,'C':60,'D':50,'E':40};
   let targetPum = null;
   if(/^[0-9]+$/.test(t)) targetPum = Number(t);
-  else { const up=t.toUpperCase(); if(gradeMap[up]!==undefined) targetPum=gradeMap[up]; else { alert('Unknown target'); return; } }
+  else { const up = t.toUpperCase(); if(gradeMap[up]!==undefined) targetPum = gradeMap[up]; else { alert('Unknown target'); return; } }
+
   let reqTotalNearest = interpPumToRawNearest(DATA[subj].alevel.anchors, targetPum);
   if(reqTotalNearest===null){ mainOutput.textContent='Error'; subOutput.textContent='Missing data'; return; }
   const reqTotal = Math.ceil(reqTotalNearest);
+
   // read papers
   const rows = papersArea.querySelectorAll('.paper-row');
   const papers = DATA[subj].a2_papers || [];
@@ -287,9 +304,9 @@ calcPaperTarget.addEventListener('click', ()=>{
     }
   }
   if(solveCount>1){ mainOutput.textContent='Invalid'; subOutput.textContent='Select Solve for only one paper'; return; }
-  const a2maxTotal = DATA[subj].alevel.max_raw - DATA[subj].as.max_raw;
+
+  // no solve: both papers raw -> check goal reached or shortfall
   if(solveCount===0){
-    // both papers raw: check if they meet required
     const requiredA2 = Math.ceil(reqTotal - estASraw);
     const totalA2entered = knownSum;
     if(totalA2entered >= requiredA2){
@@ -298,6 +315,8 @@ calcPaperTarget.addEventListener('click', ()=>{
       const grade = pumToGrade(finalPum);
       mainOutput.textContent = `Goal reached — final ${finalPum} PUM (${grade})`;
       subOutput.textContent = `Total raw (AS est ${estASraw} + A2 ${totalA2entered}) = ${finalRaw}`;
+      // update target inputs to reflect achieved final PUM/grade (respect input type)
+      updateTargetInputsWithAchieved(finalPum);
       return;
     } else {
       const short = requiredA2 - totalA2entered;
@@ -306,27 +325,52 @@ calcPaperTarget.addEventListener('click', ()=>{
       return;
     }
   }
-  // one paper unknown
-  const reqUnknown = Math.ceil(reqTotal - estASraw - knownSum);
-  if(reqUnknown <= 0){
+
+  // per-paper solve for single unknown
+  const requiredUnknown = Math.ceil(reqTotal - estASraw - knownSum);
+  if(requiredUnknown <= 0){
     mainOutput.textContent = 'Already achieved';
-    subOutput.textContent = `Known paper(s) already cover target.`;
+    subOutput.textContent = `Known paper(s) already cover the target.`;
     return;
   }
-  if(reqUnknown > unknown.max){
-    const extra = reqUnknown - unknown.max;
+  if(requiredUnknown > unknown.max){
+    const extra = requiredUnknown - unknown.max;
     const other = papers.filter(p=>p.id!==unknown.id).map(p=>p.name).join(', ');
     mainOutput.textContent = 'Impossible';
-    subOutput.textContent = `Needs ${reqUnknown} in ${unknown.name} (max ${unknown.max}). Extra ${extra} would need to come from ${other}.`;
+    subOutput.textContent = `Needs ${requiredUnknown} in ${unknown.name} (max ${unknown.max}). Extra ${extra} would need to come from ${other}.`;
     return;
   }
-  // success
-  let pctText='N/A';
-  if(estASraw>0){ const diff=reqUnknown - estASraw; const pct=Math.round((diff/estASraw)*100); pctText = pct>0? `${pct}% more than AS` : pct<0? `${Math.abs(pct)}% less than AS` : 'Same as AS'; }
-  mainOutput.textContent = `${reqUnknown} raw needed in ${unknown.name}`;
-  subOutput.textContent = `${pctText}. Required total raw (AS + A2): ${reqTotal} / ${DATA[subj].alevel.max_raw} (AS est ${estASraw}, known A2 ${knownSum})`;
+  // success — do NOT show percent vs AS (per your request)
+  mainOutput.textContent = `${requiredUnknown} raw needed in ${unknown.name}`;
+  subOutput.textContent = `Required total raw (AS + A2): ${reqTotal} / ${DATA[subj].alevel.max_raw} (AS raw est: ${estASraw}; known A2 sum: ${knownSum})`;
 });
+
+/* ===== helper: update target input boxes with achieved final pum/grade =====
+   If user had entered numeric target, we replace with numeric finalPum.
+   If user had entered letter grade, we replace with letter corresponding to finalPum.
+*/
+function updateTargetInputsWithAchieved(finalPum){
+  // targetOverall
+  const tO = document.getElementById('targetOverall');
+  const tP = document.getElementById('targetPaper');
+  // function to decide if original was numeric
+  function wasNumeric(s){ return /^[0-9]+$/.test((s||'').trim()); }
+  // overall
+  if(tO.value && tO.value.trim() !== ''){
+    if(wasNumeric(tO.value)) tO.value = String(finalPum);
+    else tO.value = pumToGrade(finalPum);
+  }
+  // paper
+  if(tP.value && tP.value.trim() !== ''){
+    if(wasNumeric(tP.value)) tP.value = String(finalPum);
+    else tP.value = pumToGrade(finalPum);
+  }
+}
+
+/* ===== end ===== */
 </script>
 </body>
+</html>
 
 </html>
+
