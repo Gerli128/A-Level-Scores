@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>CIE A-Level — two-mode predictor (updated)</title>
+  <title>CIE A-Level — two-mode predictor (synced targets)</title>
   <style>
     :root{--bg:#071226;--card:#0b1726;--muted:#9fb0c8;--accent:#60a5fa;--text:#e8f2fb;--big:32px;--med:16px}
     *{box-sizing:border-box}
@@ -33,8 +33,8 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>CIE A-Level — quick predictor (updated)</h1>
-      <div class="small">Two actions: (A) Enter predicted A2 raw → get final grade/PUM. (B) Enter score you want → overall/ per-paper options.</div>
+      <h1>CIE A-Level — quick predictor (synced targets)</h1>
+      <div class="small">Two actions: (A) Enter predicted A2 raw → get final grade/PUM. (B) Enter score you want → overall/per-paper options. The two target inputs are synced.</div>
     </div>
 
     <div class="card">
@@ -178,6 +178,10 @@ Object.keys(DATA).forEach(k=>{ const o=document.createElement('option'); o.value
 subjectSel.value = Object.keys(DATA)[0];
 updatePredLabel(); buildPapersUI();
 
+/* keep target inputs in sync */
+targetOverall.addEventListener('input', ()=>{ if(targetPaper.value !== targetOverall.value) targetPaper.value = targetOverall.value; });
+targetPaper.addEventListener('input', ()=>{ if(targetOverall.value !== targetPaper.value) targetOverall.value = targetPaper.value; });
+
 subjectSel.addEventListener('change', ()=>{ updatePredLabel(); buildPapersUI(); resetOutputs(); });
 
 function updatePredLabel(){
@@ -204,7 +208,7 @@ btnTarget.addEventListener('click', ()=>{
 subOverall.addEventListener('click', ()=>{ subOverall.classList.add('active'); subPaper.classList.remove('active'); overallTarget.style.display='block'; paperTarget.style.display='none'; resetOutputs(); });
 subPaper.addEventListener('click', ()=>{ subPaper.classList.add('active'); subOverall.classList.remove('active'); overallTarget.style.display='none'; paperTarget.style.display='block'; buildPapersUI(); resetOutputs(); });
 
-/* build papers UI */
+/* build per-paper UI */
 function buildPapersUI(){
   const subj = subjectSel.value;
   const papers = DATA[subj].a2_papers || [];
@@ -235,7 +239,7 @@ calcPred.addEventListener('click', ()=>{
   mainOutput.textContent = `${grade} — ${finalPum} PUM`;
   subOutput.textContent = `Total raw (AS est ${estASraw} + A2 ${predA2}) = ${totalRaw} / ${DATA[subj].alevel.max_raw}`;
 
-  // UPDATE target inputs to achieved final (respect user's input type)
+  // UPDATE both target inputs to achieved final PUM/grade (respect user's original format)
   updateTargetInputsWithAchieved(finalPum);
 });
 
@@ -315,7 +319,7 @@ calcPaperTarget.addEventListener('click', ()=>{
       const grade = pumToGrade(finalPum);
       mainOutput.textContent = `Goal reached — final ${finalPum} PUM (${grade})`;
       subOutput.textContent = `Total raw (AS est ${estASraw} + A2 ${totalA2entered}) = ${finalRaw}`;
-      // update target inputs to reflect achieved final PUM/grade (respect input type)
+      // update both target inputs to achieved final PUM/grade
       updateTargetInputsWithAchieved(finalPum);
       return;
     } else {
@@ -340,30 +344,34 @@ calcPaperTarget.addEventListener('click', ()=>{
     subOutput.textContent = `Needs ${requiredUnknown} in ${unknown.name} (max ${unknown.max}). Extra ${extra} would need to come from ${other}.`;
     return;
   }
-  // success — do NOT show percent vs AS (per your request)
+  // success — do NOT show percent vs AS (per request)
   mainOutput.textContent = `${requiredUnknown} raw needed in ${unknown.name}`;
   subOutput.textContent = `Required total raw (AS + A2): ${reqTotal} / ${DATA[subj].alevel.max_raw} (AS raw est: ${estASraw}; known A2 sum: ${knownSum})`;
 });
 
-/* ===== helper: update target input boxes with achieved final pum/grade =====
+/* ===== helper: update target inputs with achieved final pum/grade =====
    If user had entered numeric target, we replace with numeric finalPum.
    If user had entered letter grade, we replace with letter corresponding to finalPum.
+   This writes to both inputs (they are synced).
 */
 function updateTargetInputsWithAchieved(finalPum){
-  // targetOverall
-  const tO = document.getElementById('targetOverall');
-  const tP = document.getElementById('targetPaper');
-  // function to decide if original was numeric
   function wasNumeric(s){ return /^[0-9]+$/.test((s||'').trim()); }
   // overall
+  const tO = document.getElementById('targetOverall');
+  const tP = document.getElementById('targetPaper');
   if(tO.value && tO.value.trim() !== ''){
     if(wasNumeric(tO.value)) tO.value = String(finalPum);
     else tO.value = pumToGrade(finalPum);
+  } else {
+    // if empty, still update both to numeric finalPum for visibility
+    tO.value = String(finalPum);
   }
-  // paper
+  // mirror to other input (listeners keep them synced)
   if(tP.value && tP.value.trim() !== ''){
     if(wasNumeric(tP.value)) tP.value = String(finalPum);
     else tP.value = pumToGrade(finalPum);
+  } else {
+    tP.value = String(finalPum);
   }
 }
 
@@ -372,5 +380,4 @@ function updateTargetInputsWithAchieved(finalPum){
 </body>
 </html>
 
-</html>
 
