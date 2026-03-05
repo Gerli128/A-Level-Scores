@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>CIE A-Level — two-mode predictor (synced targets)</title>
+  <title>CIE A Level Score calculator</title>
   <style>
-    :root{--bg:#071226;--card:#0b1726;--muted:#9fb0c8;--accent:#60a5fa;--text:#e8f2fb;--big:32px;--med:16px}
+    :root{--bg:#071226;--card:#0b1726;--muted:#9fb0c8;--accent:#60a5fa;--text:#e8f2fb;--big:30px;--med:16px}
     *{box-sizing:border-box}
     body{margin:0;background:linear-gradient(180deg,#061225,#08172a);color:var(--text);font-family:Inter,system-ui,Roboto,Arial;padding:18px}
     .wrap{max-width:980px;margin:0 auto}
@@ -33,8 +33,8 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>CIE A-Level — quick predictor (synced targets)</h1>
-      <div class="small">Two actions: (A) Enter predicted A2 raw → get final grade/PUM. (B) Enter score you want → overall/per-paper options. The two target inputs are synced.</div>
+      <h1>CIE A Level Score calculator</h1>
+      <div class="small">Two actions: (A) Enter predicted A2 raw → get final grade/PUM. (B) Enter score you want → overall/per-paper options.</div>
     </div>
 
     <div class="card">
@@ -60,7 +60,7 @@
         <div class="row"><button id="calcPred" class="btn">Get final grade & PUM</button></div>
       </div>
 
-      <!-- TARGET (has two sub-options) -->
+      <!-- TARGET -->
       <div id="targetArea" style="display:none;margin-top:12px">
         <div class="small">Two sub-options inside "score you want": Overall target or Per-paper target.</div>
         <div class="subBtns">
@@ -95,7 +95,7 @@
   </div>
 
 <script>
-/* ==== DATA (same anchors and per-paper config) ===== */
+/* ===== DATA (anchors + paper config) ===== */
 const DATA = {
   "Mathematics":{ alevel:{max_raw:250,anchors:[{raw:0,pum:0},{raw:56,pum:40},{raw:90,pum:50},{raw:125,pum:60},{raw:160,pum:70},{raw:188,pum:80},{raw:217,pum:90},{raw:250,pum:100}]}, as:{max_raw:125,anchors:[{raw:0,pum:0},{raw:27,pum:40},{raw:45,pum:50},{raw:63,pum:60},{raw:83,pum:70},{raw:98,pum:80},{raw:113,pum:90},{raw:125,pum:100}]}, a2_papers:[{id:'p3',name:'Paper 3 (Pure)',max:75},{id:'p4',name:'Paper 4 (Mechanics)',max:50}] },
   "Physics":{ alevel:{max_raw:260,anchors:[{raw:0,pum:0},{raw:76,pum:40},{raw:101,pum:50},{raw:127,pum:60},{raw:154,pum:70},{raw:179,pum:80},{raw:205,pum:90},{raw:260,pum:100}]}, as:{max_raw:130,anchors:[{raw:0,pum:0},{raw:45,pum:40},{raw:58,pum:50},{raw:71,pum:60},{raw:84,pum:70},{raw:96,pum:80},{raw:113,pum:90},{raw:130,pum:100}]}, a2_papers:[{id:'p4',name:'Paper 4 (Theory)',max:100},{id:'p5',name:'Paper 5 (Analysis)',max:30}] },
@@ -208,24 +208,60 @@ btnTarget.addEventListener('click', ()=>{
 subOverall.addEventListener('click', ()=>{ subOverall.classList.add('active'); subPaper.classList.remove('active'); overallTarget.style.display='block'; paperTarget.style.display='none'; resetOutputs(); });
 subPaper.addEventListener('click', ()=>{ subPaper.classList.add('active'); subOverall.classList.remove('active'); overallTarget.style.display='none'; paperTarget.style.display='block'; buildPapersUI(); resetOutputs(); });
 
-/* build per-paper UI */
+/* build per-paper UI with dynamic solve option disabling and input show/hide */
 function buildPapersUI(){
   const subj = subjectSel.value;
   const papers = DATA[subj].a2_papers || [];
   papersArea.innerHTML = '';
   if(!papers || papers.length===0){ papersArea.innerHTML = '<div class="small">No per-paper configuration.</div>'; return; }
+
   papers.forEach((p, i)=>{
     const row = document.createElement('div'); row.className='paper-row';
     const title = document.createElement('div'); title.style.minWidth='220px'; title.textContent = `${p.name} (max ${p.max})`;
-    const sel = document.createElement('select'); sel.innerHTML = '<option value="raw">Enter raw</option><option value="solve">Solve for this paper</option>'; sel.value='raw'; sel.dataset.idx=i;
-    const inp = document.createElement('input'); inp.type='number'; inp.step='1'; inp.min='0'; inp.max=p.max; inp.placeholder='raw (0-'+p.max+')'; inp.dataset.idx=i;
-    sel.addEventListener('change', ()=>{ if(sel.value==='solve') inp.value=''; });
+
+    const sel = document.createElement('select');
+    sel.innerHTML = '<option value="raw">Enter raw</option><option value="solve">Solve for this paper</option>';
+    sel.value = 'raw';
+    sel.dataset.idx = i;
+
+    const inp = document.createElement('input');
+    inp.type='number'; inp.step='1'; inp.min='0'; inp.max=p.max; inp.placeholder='raw (0-'+p.max+')';
+    inp.dataset.idx = i;
+
+    // when switching, implement show/hide and enforce single-solve rule
+    sel.addEventListener('change', ()=>{
+      const rows = papersArea.querySelectorAll('.paper-row');
+      // if current changed to solve -> hide its input & disable solve in others
+      if(sel.value === 'solve'){
+        inp.value = '';
+        inp.style.display = 'none';
+        // disable 'solve' option in other selects
+        rows.forEach((r, j)=>{
+          if(j === i) return;
+          const otherSel = r.querySelector('select');
+          // remove or disable solve option
+          const solveOption = Array.from(otherSel.options).find(o=>o.value==='solve');
+          if(solveOption) solveOption.disabled = true;
+        });
+      } else {
+        // show its input again and re-enable solve options in others
+        inp.style.display = '';
+        rows.forEach((r, j)=>{
+          if(j === i) return;
+          const otherSel = r.querySelector('select');
+          const solveOption = Array.from(otherSel.options).find(o=>o.value==='solve');
+          if(solveOption) solveOption.disabled = false;
+        });
+      }
+    });
+
+    // append
     row.appendChild(title); row.appendChild(sel); row.appendChild(inp);
     papersArea.appendChild(row);
   });
 }
 
-/* ---------- Predicted A2 flow ---------- */
+/* ---------- Predicted A2 flow (now includes % vs AS) ---------- */
 calcPred.addEventListener('click', ()=>{
   const subj = subjectSel.value;
   const asVal = Number(asScoreInput.value);
@@ -237,14 +273,22 @@ calcPred.addEventListener('click', ()=>{
   const finalPum = interpRawToPum(DATA[subj].alevel.anchors, totalRaw);
   const grade = pumToGrade(finalPum);
   mainOutput.textContent = `${grade} — ${finalPum} PUM`;
-  subOutput.textContent = `Total raw (AS est ${estASraw} + A2 ${predA2}) = ${totalRaw} / ${DATA[subj].alevel.max_raw}`;
 
-  // UPDATE both target inputs to achieved final PUM/grade (respect user's original format)
+  // percentage comparison vs AS raw estimate
+  let pctText = 'N/A';
+  if(estASraw > 0){
+    const diff = predA2 - estASraw;
+    const pct = Math.round((diff / estASraw) * 100);
+    pctText = pct>0 ? `${pct}% more than AS` : pct<0 ? `${Math.abs(pct)}% less than AS` : 'Same as AS';
+  }
+  subOutput.textContent = `Total raw (AS est ${estASraw} + A2 ${predA2}) = ${totalRaw} / ${DATA[subj].alevel.max_raw} — ${pctText}`;
+
+  // update both target inputs to achieved final PUM/grade
   updateTargetInputsWithAchieved(finalPum);
 });
 
 /* ---------- Overall target flow ---------- */
-calcOverall.addEventListener('click', ()=>{
+document.getElementById('calcOverall').addEventListener('click', ()=>{
   const subj = subjectSel.value;
   const asVal = Number(asScoreInput.value);
   if(!Number.isInteger(asVal) || asVal < 0 || asVal > 100){ alert('Enter AS score as integer 0–100'); return; }
@@ -272,7 +316,7 @@ calcOverall.addEventListener('click', ()=>{
   subOutput.textContent = `${pctText}. Required total raw (AS + A2): ${reqTotal} / ${DATA[subj].alevel.max_raw}`;
 });
 
-/* ---------- Per-paper target flow (no % shown for per-paper) ---------- */
+/* ---------- Per-paper target flow (solve option removes input, enforces only-one-solve) ---------- */
 calcPaperTarget.addEventListener('click', ()=>{
   const subj = subjectSel.value;
   const asVal = Number(asScoreInput.value);
@@ -344,29 +388,25 @@ calcPaperTarget.addEventListener('click', ()=>{
     subOutput.textContent = `Needs ${requiredUnknown} in ${unknown.name} (max ${unknown.max}). Extra ${extra} would need to come from ${other}.`;
     return;
   }
-  // success — do NOT show percent vs AS (per request)
+  // success — no percent shown for per-paper
   mainOutput.textContent = `${requiredUnknown} raw needed in ${unknown.name}`;
   subOutput.textContent = `Required total raw (AS + A2): ${reqTotal} / ${DATA[subj].alevel.max_raw} (AS raw est: ${estASraw}; known A2 sum: ${knownSum})`;
 });
 
 /* ===== helper: update target inputs with achieved final pum/grade =====
-   If user had entered numeric target, we replace with numeric finalPum.
-   If user had entered letter grade, we replace with letter corresponding to finalPum.
-   This writes to both inputs (they are synced).
+   Write to both target boxes; if original was numeric keep numeric, otherwise set letter grade.
 */
 function updateTargetInputsWithAchieved(finalPum){
   function wasNumeric(s){ return /^[0-9]+$/.test((s||'').trim()); }
-  // overall
   const tO = document.getElementById('targetOverall');
   const tP = document.getElementById('targetPaper');
+
   if(tO.value && tO.value.trim() !== ''){
     if(wasNumeric(tO.value)) tO.value = String(finalPum);
     else tO.value = pumToGrade(finalPum);
   } else {
-    // if empty, still update both to numeric finalPum for visibility
     tO.value = String(finalPum);
   }
-  // mirror to other input (listeners keep them synced)
   if(tP.value && tP.value.trim() !== ''){
     if(wasNumeric(tP.value)) tP.value = String(finalPum);
     else tP.value = pumToGrade(finalPum);
@@ -374,8 +414,6 @@ function updateTargetInputsWithAchieved(finalPum){
     tP.value = String(finalPum);
   }
 }
-
-/* ===== end ===== */
 </script>
 </body>
 </html>
