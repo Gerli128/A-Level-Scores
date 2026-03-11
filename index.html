@@ -34,7 +34,7 @@
   <div class="wrap">
     <div class="card">
       <h1>CIE A Level Score calculator</h1>
-      <div class="small">Two actions: (A) Enter predicted A2 raw → get final grade/PUM. (B) Enter score you want → overall/per-paper options.</div>
+      <div class="small">Two actions: (A) Enter your predicted raw marks. (B) Enter score your aiming for (overall/per paper).</div>
     </div>
 
     <div class="card">
@@ -43,14 +43,13 @@
 
       <label for="asScore">Enter your AS score (the number on your AS statement — integer 0–100)</label>
       <input id="asScore" type="number" min="0" max="100" step="1" placeholder="e.g. 82">
-      <div id="asHint" class="small" style="margin-top:6px">AS input is treated as AS PUM and used to estimate AS raw internally.</div>
     </div>
 
     <div class="card">
       <label>Choose action</label>
       <div class="primaryBtns">
-        <button id="btnPred" class="primaryBtn active">Enter predicted A2 raw</button>
-        <button id="btnTarget" class="primaryBtn">Enter score you want</button>
+        <button id="btnPred" class="primaryBtn active">Enter predicted A2 raw marks</button>
+        <button id="btnTarget" class="primaryBtn">Enter score your Aiming for</button>
       </div>
 
       <!-- PREDICTED A2 RAW -->
@@ -62,7 +61,6 @@
 
       <!-- TARGET -->
       <div id="targetArea" style="display:none;margin-top:12px">
-        <div class="small">Two sub-options inside "score you want": Overall target or Per-paper target.</div>
         <div class="subBtns">
           <button id="subOverall" class="subBtn active">Overall target</button>
           <button id="subPaper" class="subBtn">Per-paper</button>
@@ -71,15 +69,15 @@
         <!-- Overall -->
         <div id="overallTarget" style="margin-top:10px">
           <label for="targetOverall">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
-          <input id="targetOverall" placeholder="e.g. A or 95">
+          <input id="targetOverall" placeholder="e.g. B or 90">
           <div class="row"><button id="calcOverall" class="btn">Get A2 raw needed</button></div>
         </div>
 
         <!-- Per-paper -->
         <div id="paperTarget" style="display:none;margin-top:10px">
-          <label for="targetPaper">Enter target grade or PUM (A*/A/B/... or integer PUM)</label>
-          <input id="targetPaper" placeholder="e.g. A or 95">
-          <div class="small" style="margin-top:8px">For each A2 paper choose either <strong>Enter raw</strong> or <strong>Solve for this paper</strong>. Exactly one paper may be Solve. Raw inputs must be integers within the paper max.</div>
+          <label for="targetPaper">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
+          <input id="targetPaper" placeholder="e.g. B or 90">
+          <div class="small" style="margin-top:8px">For each A2 paper choose either <strong>Enter raw</strong> or <strong>Solve for this paper</strong></div>
           <div id="papersArea" style="margin-top:8px"></div>
           <div class="row" style="margin-top:10px"><button id="calcPaperTarget" class="btn">Calculate per-paper result</button></div>
         </div>
@@ -102,7 +100,7 @@ const DATA = {
   "Chemistry":{ alevel:{max_raw:260,anchors:[{raw:0,pum:0},{raw:67,pum:40},{raw:93,pum:50},{raw:118,pum:60},{raw:144,pum:70},{raw:174,pum:80},{raw:204,pum:90},{raw:260,pum:100}]}, as:{max_raw:130,anchors:[{raw:0,pum:0},{raw:36,pum:40},{raw:47,pum:50},{raw:58,pum:60},{raw:70,pum:70},{raw:86,pum:80},{raw:109,pum:90},{raw:130,pum:100}]}, a2_papers:[{id:'p4',name:'Paper 4 (Theory)',max:100},{id:'p5',name:'Paper 5 (Analysis)',max:30}] },
   "Biology":{ alevel:{max_raw:260,anchors:[{raw:0,pum:0},{raw:78,pum:40},{raw:99,pum:50},{raw:120,pum:60},{raw:142,pum:70},{raw:166,pum:80},{raw:189,pum:90},{raw:260,pum:100}]}, as:{max_raw:130,anchors:[{raw:0,pum:0},{raw:44,pum:40},{raw:54,pum:50},{raw:65,pum:60},{raw:75,pum:70},{raw:87,pum:80},{raw:109,pum:90},{raw:130,pum:100}]}, a2_papers:[{id:'p4',name:'Paper 4 (Theory)',max:100},{id:'p5',name:'Paper 5 (Analysis)',max:30}] },
   "Computer Science":{ alevel:{max_raw:300,anchors:[{raw:0,pum:0},{raw:73,pum:40},{raw:103,pum:50},{raw:134,pum:60},{raw:165,pum:70},{raw:197,pum:80},{raw:230,pum:90},{raw:300,pum:100}]}, as:{max_raw:150,anchors:[{raw:0,pum:0},{raw:38,pum:40},{raw:52,pum:50},{raw:66,pum:60},{raw:80,pum:70},{raw:95,pum:80},{raw:123,pum:90},{raw:150,pum:100}]}, a2_papers:[{id:'p3',name:'Paper 3 (Theory)',max:75},{id:'p4',name:'Paper 4 (Coding)',max:75}] },
-  "Accounting":{ alevel:{max_raw:250,anchors:[{raw:0,pum:0},{raw:71,pum:40},{raw:93,pum:50},{raw:116,pum:60},{raw:139,pum:70},{raw:167,pum:80},{raw:194,pum:90},{raw:250,pum:100}]}, as:{max_raw:125,anchors:[{raw:0,pum:0},{raw:34,pum:40},{raw:46,pum:50},{raw:58,pum:60},{raw:71,pum:70},{raw:88,pum:80},{raw:105,pum:90},{raw:125,pum:100}]}, a2_papers:[{id:'p3',name:'Paper 3 (Financial)',max:75},{id:'p4',name:'Paper 4 (Cost & Mgmt)',max:50}] },
+  "Accounting":{ alevel:{max_raw:250,anchors:[{raw:0,pum:0},{raw:71,pum:40},{raw:93,pum:50},{raw:116,pum:60},{raw:139,pum:70},{raw:167,pum:80},{raw:194,pum:90},{raw:250,pum:100}]}, as:{max_raw:125,anchors:[{raw:0,pum:0},{raw:34,pum:40},{raw:46,pum:50},{raw:58,pum:60},{raw:71,pum:70},{raw:88,pum:80},{raw:105,pum:90},{raw:125,pum:100}]}, a2_papers:[{id:'p3',name:'Paper 3 (Financial)',max:75},{id:'p4',name:'Paper 4 (C & M)',max:50}] },
   "Economics":{ alevel:{max_raw:180,anchors:[{raw:0,pum:0},{raw:59,pum:40},{raw:70,pum:50},{raw:82,pum:60},{raw:94,pum:70},{raw:108,pum:80},{raw:123,pum:90},{raw:180,pum:100}]}, as:{max_raw:90,anchors:[{raw:0,pum:0},{raw:24,pum:40},{raw:29,pum:50},{raw:35,pum:60},{raw:42,pum:70},{raw:48,pum:80},{raw:72,pum:90},{raw:90,pum:100}]}, a2_papers:[{id:'p3',name:'Paper 3 (MCQ)',max:30},{id:'p4',name:'Paper 4 (Essay)',max:60}] }
 };
 
@@ -417,6 +415,7 @@ function updateTargetInputsWithAchieved(finalPum){
 </script>
 </body>
 </html>
+
 
 
 
