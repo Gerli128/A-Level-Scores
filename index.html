@@ -278,13 +278,13 @@ function interpRawToPum(anchors, raw){
 function interpPumToRawNearest(anchors, pum){
   if(!anchors) return null;
   const pts = anchors.slice().sort((a,b)=>a.pum-b.pum);
-  if(pum <= pts[0].pum) return Math.round(pts[0].raw);
-  if(pum >= pts[pts.length-1].pum) return Math.round(pts[pts.length-1].raw);
+  if(pum <= pts[0].pum) return Math.ceil(pts[0].raw);
+  if(pum >= pts[pts.length-1].pum) return Math.ceil(pts[pts.length-1].raw);
   for(let i=0;i<pts.length-1;i++){
     const A = pts[i], B = pts[i+1];
     if(pum >= A.pum && pum <= B.pum){
       const t = (pum - A.pum) / (B.pum - A.pum);
-      return Math.round(A.raw + t*(B.raw - A.raw));
+      return Math.ceil(A.raw + t*(B.raw - A.raw));
     }
   }
   return null;
