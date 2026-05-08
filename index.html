@@ -5,691 +5,365 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>CIE A Level Score calculator</title>
   <style>
-    :root{--bg:#071226;--card:#0b1726;--muted:#9fb0c8;--accent:#60a5fa;--text:#e8f2fb;--big:30px;--med:16px}
+    :root{--bg:#071226;--card:#0b1726;--muted:#9fb0c8;--accent:#60a5fa;--text:#e8f2fb}
     *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#061225,#08172a);color:var(--text);font-family:Inter,system-ui,Roboto,Arial,sans-serif;padding:18px}
+    body{margin:0;padding:18px;background:linear-gradient(180deg,#061225,#08172a);color:var(--text);font:14px/1.4 Inter,system-ui,Roboto,Arial,sans-serif}
     .wrap{max-width:980px;margin:0 auto}
-    .card{background:var(--card);padding:14px;border-radius:10px;margin:10px 0;border:1px solid rgba(255,255,255,0.03)}
+    .card{background:var(--card);padding:14px;border:1px solid rgba(255,255,255,.03);border-radius:10px;margin:10px 0}
     h1{margin:0 0 8px;font-size:20px}
-    label{display:block;font-weight:700;margin-top:8px;font-size:0.95rem}
-    select,input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#071b2a;color:var(--text);font-size:14px}
-    .primaryBtns{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
-    .primaryBtn{flex:1;min-width:120px;padding:12px;border-radius:10px;border:0;background:#163a57;color:var(--text);font-weight:800;cursor:pointer;font-size:15px}
+    label{display:block;margin-top:8px;font-weight:800}
+    select,input{width:100%;padding:9px;border:1px solid rgba(255,255,255,.06);border-radius:8px;background:#071b2a;color:var(--text);font:inherit}
+    .primaryBtns,.subBtns,.row{display:flex;gap:8px;flex-wrap:wrap}
+    .primaryBtns,.subBtns{margin-top:8px}
+    .primaryBtn{flex:1;min-width:120px;padding:10px 12px;border:0;border-radius:10px;background:#163a57;color:var(--text);font-weight:800;cursor:pointer;font-size:14px}
     .primaryBtn.active{background:var(--accent);color:#04203a}
-    .subBtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-    .subBtn{padding:8px 10px;border-radius:8px;border:0;background:#0f2b3f;color:var(--text);cursor:pointer}
-    .subBtn.active{background:#1f6fd8;color:#04203a}
-    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
-    .btn{background:var(--accent);border:0;padding:10px 12px;border-radius:8px;color:#04203a;font-weight:700;cursor:pointer}
-    .small{font-size:0.9rem;color:var(--muted)}
-    .outputBox{background:rgba(255,255,255,0.02);padding:18px;border-radius:10px;margin-top:10px;border:1px solid rgba(255,255,255,0.03);text-align:center}
-    .bigText{font-size:var(--big);font-weight:900;margin:6px 0}
-    .subText{font-size:var(--med);color:var(--muted);margin:4px 0}
-    .paper-row{display:flex;gap:8px;align-items:center;margin-top:8px}
-    .paper-row input{width:140px}
+    .subBtn,.btn{border:0;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px}
+    .subBtn{padding:8px 10px;background:#0f2b3f;color:var(--text)}
+    .subBtn.active{background:var(--accent);color:#04203a}
+    .btn{padding:9px 11px;background:var(--accent);color:#04203a}
+    .small{color:var(--muted)}
+    .outputBox{background:rgba(255,255,255,.02);padding:18px;border:1px solid rgba(255,255,255,.03);border-radius:10px;text-align:center}
+    .bigText{font-size:30px;font-weight:900;margin:6px 0}
+    .subText{font-size:16px;color:var(--muted);margin:4px 0}
+    .paper-row{margin-top:10px}
+    .paper-row label{margin-top:0;font-weight:800}
+    .paper-row input{margin-top:6px}
     .notesLink{display:block;margin-top:8px;color:var(--accent);font-weight:700;text-decoration:none}
     .notesMessage{margin-top:8px;color:var(--muted)}
-    .sectionTitle{font-weight:800;margin-top:2px}
-    @media (max-width:820px){ .paper-row{flex-direction:column;align-items:flex-start} .paper-row input{width:100%} .bigText{font-size:24px} }
+    @media (max-width:820px){.bigText{font-size:24px}}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>CIE A Level Score calculator</h1>
-      <div class="small">Two actions: (A) Enter your predicted raw marks. (B) Enter score your aiming for (overall or per paper).</div>
+<div class="wrap">
+  <div class="card">
+    <h1>CIE A Level Score calculator</h1>
+    <div class="small">Two actions: (A) Enter your predicted raw marks. (B) Enter score your aiming for (overall or per paper).</div>
+  </div>
+
+  <div class="card">
+    <label for="subject">Subject</label>
+    <select id="subject"></select>
+
+    <label>Series</label>
+    <div class="primaryBtns">
+      <button id="btnMJ" class="primaryBtn active">May June</button>
+      <button id="btnON" class="primaryBtn">Oct Nov</button>
     </div>
 
-    <div class="card">
-      <label for="subject">Subject</label>
-      <select id="subject"></select>
+    <label for="asScore">Enter your AS score (the number on your AS statement - integer 0 to 100)</label>
+    <input id="asScore" type="number" min="0" max="100" step="1" placeholder="e.g. 82">
+  </div>
 
-      <label>Series</label>
-      <div class="primaryBtns">
-        <button id="btnMJ" class="primaryBtn active">MJ</button>
-        <button id="btnON" class="primaryBtn">ON</button>
-      </div>
+  <div class="card" id="notesCard">
+    <label>Notes</label>
+    <div id="notesContent" class="notesMessage">No notes yet.</div>
+  </div>
 
-      <label for="asScore">Enter your AS score (the number on your AS statement - integer 0 to 100)</label>
-      <input id="asScore" type="number" min="0" max="100" step="1" placeholder="e.g. 82">
+  <div class="card">
+    <label>Choose action</label>
+    <div class="primaryBtns">
+      <button id="btnPred" class="primaryBtn active">Enter predicted A2 raw marks</button>
+      <button id="btnTarget" class="primaryBtn">Enter score your Aiming for</button>
     </div>
 
-    <div class="card" id="notesCard">
-      <label>Notes</label>
-      <div id="notesContent" class="notesMessage">No notes yet.</div>
+    <div id="predictedArea" style="margin-top:12px">
+      <div id="predictedPapersArea"></div>
+      <div class="row" style="margin-top:15px"><button id="calcPred" class="btn">Get final grade & PUM</button></div>
     </div>
 
-    <div class="card">
-      <label>Choose action</label>
-      <div class="primaryBtns">
-        <button id="btnPred" class="primaryBtn active">Enter predicted A2 raw marks</button>
-        <button id="btnTarget" class="primaryBtn">Enter score your Aiming for</button>
+    <div id="targetArea" style="display:none;margin-top:12px">
+      <div class="subBtns">
+        <button id="subOverall" class="subBtn active">Overall target</button>
+        <button id="subPaper1" class="subBtn">Paper target 1</button>
+        <button id="subPaper2" class="subBtn">Paper target 2</button>
       </div>
 
-      <div id="predictedArea" style="margin-top:12px">
-        <div id="predictedPapersArea" style="margin-top:8px"></div>
-        <div class="row"><button id="calcPred" class="btn">Get final grade & PUM</button></div>
+      <div id="overallTarget" style="margin-top:10px">
+        <label for="targetOverall">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
+        <input id="targetOverall" placeholder="e.g. B or 90">
+        <div class="row" style="margin-top:15px"><button id="calcOverall" class="btn">Get A2 raw needed</button></div>
       </div>
 
-      <div id="targetArea" style="display:none;margin-top:12px">
-        <div class="subBtns">
-          <button id="subOverall" class="subBtn active">Overall target</button>
-          <button id="subPaper1" class="subBtn">Paper target 1</button>
-          <button id="subPaper2" class="subBtn">Paper target 2</button>
-        </div>
-
-        <div id="overallTarget" style="margin-top:10px">
-          <label for="targetOverall">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
-          <input id="targetOverall" placeholder="e.g. B or 90">
-          <div class="row"><button id="calcOverall" class="btn">Get A2 raw needed</button></div>
-        </div>
-
-        <div id="paper1Target" style="display:none;margin-top:10px">
-          <label for="targetPaper1">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
-          <input id="targetPaper1" placeholder="e.g. B or 90">
-          <label id="paper1FixedLabel" for="paper1Fixed" style="margin-top:8px">Enter fixed paper raw (max: -)</label>
-          <input id="paper1Fixed" type="number" step="1" min="0" placeholder="e.g. 42">
-          <div class="row"><button id="calcPaper1Target" class="btn">Calculate needed raw</button></div>
-        </div>
-
-        <div id="paper2Target" style="display:none;margin-top:10px">
-          <label for="targetPaper2">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
-          <input id="targetPaper2" placeholder="e.g. B or 90">
-          <label id="paper2FixedLabel" for="paper2Fixed" style="margin-top:8px">Enter fixed paper raw (max: -)</label>
-          <input id="paper2Fixed" type="number" step="1" min="0" placeholder="e.g. 42">
-          <div class="row"><button id="calcPaper2Target" class="btn">Calculate needed raw</button></div>
-        </div>
+      <div id="paper1Target" style="display:none;margin-top:10px">
+        <label for="targetPaper1">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
+        <input id="targetPaper1" placeholder="e.g. B or 90">
+        <label id="paper1FixedLabel" for="paper1Fixed" style="margin-top:8px">Enter fixed paper raw (max: -)</label>
+        <input id="paper1Fixed" type="number" step="1" min="0" placeholder="e.g. 42">
+        <div class="row" style="margin-top:15px"><button id="calcPaper1Target" class="btn">Get Paper</button></div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="outputBox">
-        <div id="mainOutput" class="bigText">No calculation yet.</div>
-        <div id="subOutput" class="subText"></div>
+      <div id="paper2Target" style="display:none;margin-top:10px">
+        <label for="targetPaper2">Enter target grade or PUM (A*/A/B/C/D/E or integer PUM)</label>
+        <input id="targetPaper2" placeholder="e.g. B or 90">
+        <label id="paper2FixedLabel" for="paper2Fixed" style="margin-top:8px">Enter fixed paper raw (max: -)</label>
+        <input id="paper2Fixed" type="number" step="1" min="0" placeholder="e.g. 42">
+        <div class="row" style="margin-top:15px"><button id="calcPaper2Target" class="btn">Get Paper</button></div>
       </div>
     </div>
   </div>
 
+  <div class="card">
+    <div class="outputBox">
+      <div id="mainOutput" class="bigText">No calculation yet.</div>
+      <div id="subOutput" class="subText"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-function makeAnchors(points, maxRaw){
-  return [
-    {raw:0, pum:0},
-    {raw:points.e, pum:40},
-    {raw:points.d, pum:50},
-    {raw:points.c, pum:60},
-    {raw:points.b, pum:70},
-    {raw:points.a, pum:80},
-    {raw:points.aStar, pum:90},
-    {raw:maxRaw, pum:100}
-  ];
-}
+const $ = id => document.getElementById(id);
 
-function makeSeries(maxRaw, asMaxRaw, alevelPoints, asPoints, papers){
-  return {
-    alevel:{max_raw:maxRaw, anchors:makeAnchors(alevelPoints, maxRaw)},
-    as:{max_raw:asMaxRaw, anchors:makeAnchors(asPoints, asMaxRaw)},
-    a2_papers:papers
-  };
-}
+const E = {
+  subject:$("subject"), as:$("asScore"),
+  btnMJ:$("btnMJ"), btnON:$("btnON"),
+  btnPred:$("btnPred"), btnTarget:$("btnTarget"),
+  predictedArea:$("predictedArea"), targetArea:$("targetArea"),
+  predictedPapersArea:$("predictedPapersArea"),
+  subOverall:$("subOverall"), subPaper1:$("subPaper1"), subPaper2:$("subPaper2"),
+  overallTarget:$("overallTarget"), paper1Target:$("paper1Target"), paper2Target:$("paper2Target"),
+  targetOverall:$("targetOverall"), targetPaper1:$("targetPaper1"), targetPaper2:$("targetPaper2"),
+  paper1Fixed:$("paper1Fixed"), paper2Fixed:$("paper2Fixed"),
+  paper1FixedLabel:$("paper1FixedLabel"), paper2FixedLabel:$("paper2FixedLabel"),
+  calcPred:$("calcPred"), calcOverall:$("calcOverall"),
+  calcPaper1Target:$("calcPaper1Target"), calcPaper2Target:$("calcPaper2Target"),
+  notesContent:$("notesContent"), mainOutput:$("mainOutput"), subOutput:$("subOutput")
+};
 
-const PAPER_CONFIG = {
-  "Mathematics": [
-    {id:'p3', name:'Paper 3 (Pure)', max:75},
-    {id:'p4', name:'Paper 4 (Mechanics)', max:50}
+const cfg = {
+  Mathematics:[
+    {id:'p3',name:'Paper 3 (Pure)',max:75},
+    {id:'p4',name:'Paper 4 (Mechanics)',max:50}
   ],
-  "Physics": [
-    {id:'p4', name:'Paper 4 (Theory)', max:100},
-    {id:'p5', name:'Paper 5 (Analysis)', max:30}
+  Physics:[
+    {id:'p4',name:'Paper 4 (Theory)',max:100},
+    {id:'p5',name:'Paper 5 (Analysis)',max:30}
   ],
-  "Chemistry": [
-    {id:'p4', name:'Paper 4 (Theory)', max:100},
-    {id:'p5', name:'Paper 5 (Analysis)', max:30}
+  Chemistry:[
+    {id:'p4',name:'Paper 4 (Theory)',max:100},
+    {id:'p5',name:'Paper 5 (Analysis)',max:30}
   ],
-  "Biology": [
-    {id:'p4', name:'Paper 4 (Theory)', max:100},
-    {id:'p5', name:'Paper 5 (Analysis)', max:30}
+  Biology:[
+    {id:'p4',name:'Paper 4 (Theory)',max:100},
+    {id:'p5',name:'Paper 5 (Analysis)',max:30}
   ],
-  "Computer Science": [
-    {id:'p3', name:'Paper 3 (Theory)', max:75},
-    {id:'p4', name:'Paper 4 (Coding)', max:75}
+  "Computer Science":[
+    {id:'p3',name:'Paper 3 (Theory)',max:75},
+    {id:'p4',name:'Paper 4 (Coding)',max:75}
   ],
-  "Accounting": [
-    {id:'p3', name:'Paper 3 (Financial)', max:75},
-    {id:'p4', name:'Paper 4 (C & M)', max:50}
+  Accounting:[
+    {id:'p3',name:'Paper 3 (Financial)',max:75},
+    {id:'p4',name:'Paper 4 (C & M)',max:50}
   ],
-  "Economics": [
-    {id:'p3', name:'Paper 3 (MCQ)', max:30},
-    {id:'p4', name:'Paper 4 (Essay)', max:60}
+  Economics:[
+    {id:'p3',name:'Paper 3 (MCQ)',max:30},
+    {id:'p4',name:'Paper 4 (Essay)',max:60}
   ]
 };
 
 const DATA = {
-  "Mathematics": {
-    MJ: makeSeries(250, 125,
-      {e:60, d:91, c:123, b:155, a:185, aStar:215},
-      {e:27, d:45, c:63, b:83, a:98, aStar:112},
-      PAPER_CONFIG["Mathematics"]
-    ),
-    ON: makeSeries(250, 125,
-      {e:68, d:99, c:130, b:162, a:187, aStar:212},
-      {e:29, d:45, c:64, b:83, a:96, aStar:111},
-      PAPER_CONFIG["Mathematics"]
-    )
+  Mathematics:{
+    MJ:S(250,125,{e:60,d:91,c:123,b:155,a:185,aStar:215},{e:27,d:45,c:63,b:83,a:98,aStar:112},cfg.Mathematics),
+    ON:S(250,125,{e:68,d:99,c:130,b:162,a:187,aStar:212},{e:29,d:45,c:64,b:83,a:96,aStar:111},cfg.Mathematics)
   },
-  "Physics": {
-    MJ: makeSeries(260, 130,
-      {e:75, d:101, c:127, b:153, a:181, aStar:209},
-      {e:47, d:60, c:74, b:87, a:99, aStar:115},
-      PAPER_CONFIG["Physics"]
-    ),
-    ON: makeSeries(260, 130,
-      {e:68, d:99, c:126, b:151, a:179, aStar:208},
-      {e:49, d:61, c:74, b:87, a:99, aStar:115},
-      PAPER_CONFIG["Physics"]
-    )
+  Physics:{
+    MJ:S(260,130,{e:75,d:101,c:127,b:153,a:181,aStar:209},{e:47,d:60,c:74,b:87,a:99,aStar:115},cfg.Physics),
+    ON:S(260,130,{e:68,d:99,c:126,b:151,a:179,aStar:208},{e:49,d:61,c:74,b:87,a:99,aStar:115},cfg.Physics)
   },
-  "Chemistry": {
-    MJ: makeSeries(260, 130,
-      {e:60, d:84, c:109, b:134, a:170, aStar:205},
-      {e:34, d:45, c:57, b:68, a:85, aStar:108},
-      PAPER_CONFIG["Chemistry"]
-    ),
-    ON: makeSeries(260, 130,
-      {e:68, d:92, c:117, b:142, a:172, aStar:202},
-      {e:41, d:52, c:63, b:75, a:87, aStar:109},
-      PAPER_CONFIG["Chemistry"]
-    )
+  Chemistry:{
+    MJ:S(260,130,{e:60,d:84,c:109,b:134,a:170,aStar:205},{e:34,d:45,c:57,b:68,a:85,aStar:108},cfg.Chemistry),
+    ON:S(260,130,{e:68,d:92,c:117,b:142,a:172,aStar:202},{e:41,d:52,c:63,b:75,a:87,aStar:109},cfg.Chemistry)
   },
-  "Biology": {
-    MJ: makeSeries(260, 130,
-      {e:76, d:96, c:117, b:138, a:163, aStar:188},
-      {e:44, d:54, c:63, b:73, a:86, aStar:109},
-      PAPER_CONFIG["Biology"]
-    ),
-    ON: makeSeries(260, 130,
-      {e:82, d:103, c:124, b:145, a:170, aStar:194},
-      {e:49, d:58, c:69, b:80, a:90, aStar:111},
-      PAPER_CONFIG["Biology"]
-    )
+  Biology:{
+    MJ:S(260,130,{e:76,d:96,c:117,b:138,a:163,aStar:188},{e:44,d:54,c:63,b:73,a:86,aStar:109},cfg.Biology),
+    ON:S(260,130,{e:82,d:103,c:124,b:145,a:170,aStar:194},{e:49,d:58,c:69,b:80,a:90,aStar:111},cfg.Biology)
   },
-  "Computer Science": {
-    MJ: makeSeries(300, 150,
-      {e:70, d:98, c:127, b:156, a:188, aStar:221},
-      {e:41, d:56, c:70, b:85, a:98, aStar:124},
-      PAPER_CONFIG["Computer Science"]
-    ),
-    ON: makeSeries(300, 150,
-      {e:65, d:94, c:124, b:154, a:187, aStar:220},
-      {e:34, d:47, c:62, b:76, a:93, aStar:122},
-      PAPER_CONFIG["Computer Science"]
-    )
+  "Computer Science":{
+    MJ:S(300,150,{e:70,d:98,c:127,b:156,a:188,aStar:221},{e:41,d:56,c:70,b:85,a:98,aStar:124},cfg["Computer Science"]),
+    ON:S(300,150,{e:65,d:94,c:124,b:154,a:187,aStar:220},{e:34,d:47,c:62,b:76,a:93,aStar:122},cfg["Computer Science"])
   },
-  "Accounting": {
-    MJ: makeSeries(250, 125,
-      {e:60, d:84, c:109, b:134, a:171, aStar:199},
-      {e:32, d:44, c:55, b:68, a:88, aStar:100},
-      PAPER_CONFIG["Accounting"]
-    ),
-    ON: makeSeries(250, 125,
-      {e:65, d:95, c:116, b:136, a:165, aStar:194},
-      {e:32, d:43, c:54, b:65, a:81, aStar:102},
-      PAPER_CONFIG["Accounting"]
-    )
+  Accounting:{
+    MJ:S(250,125,{e:60,d:84,c:109,b:134,a:171,aStar:199},{e:32,d:44,c:55,b:68,a:88,aStar:100},cfg.Accounting),
+    ON:S(250,125,{e:65,d:95,c:116,b:136,a:165,aStar:194},{e:32,d:43,c:54,b:65,a:81,aStar:102},cfg.Accounting)
   },
-  "Economics": {
-    MJ: makeSeries(180, 90,
-      {e:58, d:67, c:78, b:88, a:101, aStar:113},
-      {e:25, d:31, c:37, b:43, a:49, aStar:75},
-      PAPER_CONFIG["Economics"]
-    ),
-    ON: makeSeries(180, 90,
-      {e:58, d:68, c:78, b:89, a:99, aStar:109},
-      {e:26, d:31, c:36, b:41, a:46, aStar:68},
-      PAPER_CONFIG["Economics"]
-    )
+  Economics:{
+    MJ:S(180,90,{e:58,d:67,c:78,b:88,a:101,aStar:113},{e:25,d:31,c:37,b:43,a:49,aStar:75},cfg.Economics),
+    ON:S(180,90,{e:58,d:68,c:78,b:89,a:99,aStar:109},{e:26,d:31,c:36,b:41,a:46,aStar:68},cfg.Economics)
   }
 };
 
 const NOTES = {
-  "Mathematics": '<a class="notesLink" href="https://docs.google.com/document/d/1SreDBvhjpvnFZRZcWYWqoqiQbZ73m_vi7tWV9BO2lPo/edit?usp=sharing" target="_blank" rel="noopener">Mathematics A level Notes</a>',
-  "Physics": '<a class="notesLink" href="https://docs.google.com/document/d/1rN7Igd4UXDiN8MVf_wdJ5X5_53e0-7c3mQ2qCiRMPy8/edit?usp=sharing" target="_blank" rel="noopener">Physics A level Notes</a>',
-  "Chemistry": '<a class="notesLink" href="https://docs.google.com/document/d/1eFeT1foiH2FWd6epV56gpx8lAMViTXGN2Lxe06fCFUE/edit?usp=sharing" target="_blank" rel="noopener">Chemistry A level Notes</a>',
-  "Computer Science": '<a class="notesLink" href="https://docs.google.com/document/d/1GzOPAUhobikcUuQbq0cNMn8UsAMvrgTzTJa1HLIQ_ok/edit?usp=sharing" target="_blank" rel="noopener">Computer Science A level Notes</a>',
-  "Accounting": "Srry , I don't take this subject :D",
-  "Economics": "Srry , I don't take this subject :D",
-  "Biology": "Srry , I don't take this subject :D"
+  Mathematics:'<a class="notesLink" href="https://docs.google.com/document/d/1SreDBvhjpvnFZRZcWYWqoqiQbZ73m_vi7tWV9BO2lPo/edit?usp=sharing" target="_blank" rel="noopener">Mathematics A level Notes</a>',
+  Physics:'<a class="notesLink" href="https://docs.google.com/document/d/1rN7Igd4UXDiN8MVf_wdJ5X5_53e0-7c3mQ2qCiRMPy8/edit?usp=sharing" target="_blank" rel="noopener">Physics A level Notes</a>',
+  Chemistry:'<a class="notesLink" href="https://docs.google.com/document/d/1eFeT1foiH2FWd6epV56gpx8lAMViTXGN2Lxe06fCFUE/edit?usp=sharing" target="_blank" rel="noopener">Chemistry A level Notes</a>',
+  "Computer Science":'<a class="notesLink" href="https://docs.google.com/document/d/1GzOPAUhobikcUuQbq0cNMn8UsAMvrgTzTJa1HLIQ_ok/edit?usp=sharing" target="_blank" rel="noopener">Computer Science A level Notes</a>',
+  Accounting:"Srry , I don't take this subject :D",
+  Economics:"Srry , I don't take this subject :D",
+  Biology:"Srry , I don't take this subject :D"
 };
 
-function interpRawToPum(anchors, raw){
-  if(!anchors) return null;
-  const pts = anchors.slice().sort((a,b)=>a.raw-b.raw);
-  if(raw <= pts[0].raw) return Math.floor(pts[0].pum);
-  if(raw >= pts[pts.length-1].raw) return Math.floor(pts[pts.length-1].pum);
+let series = 'MJ', action = 'pred', targetMode = 'overall';
+
+function S(maxRaw, asMaxRaw, ap, asp, papers){
+  return {alevel:{max_raw:maxRaw, anchors:A(ap, maxRaw)}, as:{max_raw:asMaxRaw, anchors:A(asp, asMaxRaw)}, a2_papers:papers};
+}
+function A(p, max){return [{raw:0,pum:0},{raw:p.e,pum:40},{raw:p.d,pum:50},{raw:p.c,pum:60},{raw:p.b,pum:70},{raw:p.a,pum:80},{raw:p.aStar,pum:90},{raw:max,pum:100}]}
+function interp(anchors, x, from='raw', to='pum'){
+  const pts = [...anchors].sort((a,b)=>a[from]-b[from]);
+  if(x <= pts[0][from]) return Math.floor(pts[0][to]);
+  if(x >= pts.at(-1)[from]) return Math.floor(pts.at(-1)[to]);
   for(let i=0;i<pts.length-1;i++){
-    const A = pts[i], B = pts[i+1];
-    if(raw >= A.raw && raw <= B.raw){
-      const t = (raw - A.raw) / (B.raw - A.raw);
-      return Math.floor(A.pum + t*(B.pum - A.pum));
+    const A=pts[i], B=pts[i+1];
+    if(x>=A[from] && x<=B[from]){
+      const t = (x-A[from])/(B[from]-A[from]);
+      return from==='raw'
+        ? Math.floor(A[to] + t*(B[to]-A[to]))
+        : Math.ceil(A[to] + t*(B[to]-A[to]));
     }
   }
-  return null;
+}
+const rawToPum = (a, r) => interp(a, r, 'raw', 'pum');
+const pumToRaw = (a, p) => interp(a, p, 'pum', 'raw');
+
+function grade(p){ return p>=90?'A*':p>=80?'A':p>=70?'B':p>=60?'C':p>=50?'D':p>=40?'E':'U'; }
+function targetPum(v){
+  const t = (v||'').trim(), g = {'A*':90,A:80,B:70,C:60,D:50,E:40};
+  if(/^\d+$/.test(t)){ const n=+t; return n>=0&&n<=100 ? n : null; }
+  return g[t.toUpperCase()] ?? null;
 }
 
-function interpPumToRawNearest(anchors, pum){
-  if(!anchors) return null;
-  const pts = anchors.slice().sort((a,b)=>a.pum-b.pum);
-  if(pum <= pts[0].pum) return Math.ceil(pts[0].raw);
-  if(pum >= pts[pts.length-1].pum) return Math.ceil(pts[pts.length-1].raw);
-  for(let i=0;i<pts.length-1;i++){
-    const A = pts[i], B = pts[i+1];
-    if(pum >= A.pum && pum <= B.pum){
-      const t = (pum - A.pum) / (B.pum - A.pum);
-      return Math.ceil(A.raw + t*(B.raw - A.raw));
-    }
-  }
-  return null;
+function subj(){ return DATA[E.subject.value][series]; }
+function papers(){ return subj().a2_papers || []; }
+function resetOut(){ E.mainOutput.textContent='No calculation yet.'; E.subOutput.textContent=''; }
+
+function renderSubjects(){
+  E.subject.innerHTML = Object.keys(DATA).map(k => `<option value="${k}">${k}</option>`).join('');
+  E.subject.value = 'Mathematics';
 }
 
-function pumToGrade(pum){
-  if(pum >= 90) return 'A*';
-  if(pum >= 80) return 'A';
-  if(pum >= 70) return 'B';
-  if(pum >= 60) return 'C';
-  if(pum >= 50) return 'D';
-  if(pum >= 40) return 'E';
-  return 'U';
+function renderPredicted(){
+  const ps = papers();
+  E.predictedPapersArea.innerHTML = ps.map(p => `
+    <div class="paper-row">
+      <label>Enter predicted ${p.name} raw (max: ${p.max})</label>
+      <input type="number" step="1" min="0" max="${p.max}" placeholder="0 to ${p.max}">
+    </div>
+  `).join('');
 }
 
-function parseTargetPum(t){
-  const gradeMap = {'A*':90,'A':80,'B':70,'C':60,'D':50,'E':40};
-  const trimmed = (t || '').trim();
-  if(/^[0-9]+$/.test(trimmed)) return Number(trimmed);
-  const up = trimmed.toUpperCase();
-  if(gradeMap[up] !== undefined) return gradeMap[up];
-  return null;
+function renderTargetLabels(){
+  const ps = papers();
+  if(ps.length < 2) return;
+  E.subPaper1.textContent = `${ps[0].name} target`;
+  E.subPaper2.textContent = `${ps[1].name} target`;
+  E.paper1FixedLabel.textContent = `Enter ${ps[1].name} raw (max: ${ps[1].max})`;
+  E.paper2FixedLabel.textContent = `Enter ${ps[0].name} raw (max: ${ps[0].max})`;
+  E.paper1Fixed.max = ps[1].max;
+  E.paper2Fixed.max = ps[0].max;
+  E.calcPaper1Target.textContent = `Get ${ps[0].name.split(' (')[0]}`;
+  E.calcPaper2Target.textContent = `Get ${ps[1].name.split(' (')[0]}`;
 }
 
-const subjectSel = document.getElementById('subject');
-const asScoreInput = document.getElementById('asScore');
-const btnMJ = document.getElementById('btnMJ');
-const btnON = document.getElementById('btnON');
-const btnPred = document.getElementById('btnPred');
-const btnTarget = document.getElementById('btnTarget');
-const predictedArea = document.getElementById('predictedArea');
-const targetArea = document.getElementById('targetArea');
-const predictedPapersArea = document.getElementById('predictedPapersArea');
-const calcPred = document.getElementById('calcPred');
-const subOverall = document.getElementById('subOverall');
-const subPaper1 = document.getElementById('subPaper1');
-const subPaper2 = document.getElementById('subPaper2');
-const overallTarget = document.getElementById('overallTarget');
-const paper1Target = document.getElementById('paper1Target');
-const paper2Target = document.getElementById('paper2Target');
-const targetOverall = document.getElementById('targetOverall');
-const targetPaper1 = document.getElementById('targetPaper1');
-const targetPaper2 = document.getElementById('targetPaper2');
-const paper1Fixed = document.getElementById('paper1Fixed');
-const paper2Fixed = document.getElementById('paper2Fixed');
-const paper1FixedLabel = document.getElementById('paper1FixedLabel');
-const paper2FixedLabel = document.getElementById('paper2FixedLabel');
-const calcOverall = document.getElementById('calcOverall');
-const calcPaper1Target = document.getElementById('calcPaper1Target');
-const calcPaper2Target = document.getElementById('calcPaper2Target');
-const mainOutput = document.getElementById('mainOutput');
-const subOutput = document.getElementById('subOutput');
-const notesContent = document.getElementById('notesContent');
-
-let currentSeries = 'MJ';
-let currentTargetMode = 'overall';
-
-function getSubjData(){
-  const subj = subjectSel.value;
-  return DATA[subj][currentSeries];
+function renderNotes(){
+  E.notesContent.innerHTML = NOTES[E.subject.value] ?? 'No notes available for this subject.';
 }
 
-function getPapers(){
-  const subjData = getSubjData();
-  return subjData.a2_papers || [];
+function syncInputs(src){
+  [E.targetOverall,E.targetPaper1,E.targetPaper2].forEach(x => x!==src && (x.value = src.value));
 }
 
-function resetOutputs(){
-  mainOutput.textContent = 'No calculation yet.';
-  subOutput.textContent = '';
+function view(){
+  E.btnMJ.classList.toggle('active', series==='MJ');
+  E.btnON.classList.toggle('active', series==='ON');
+  E.btnPred.classList.toggle('active', action==='pred');
+  E.btnTarget.classList.toggle('active', action==='target');
+  E.predictedArea.style.display = action==='pred' ? 'block' : 'none';
+  E.targetArea.style.display = action==='target' ? 'block' : 'none';
+
+  E.subOverall.classList.toggle('active', targetMode==='overall');
+  E.subPaper1.classList.toggle('active', targetMode==='paper1');
+  E.subPaper2.classList.toggle('active', targetMode==='paper2');
+  E.overallTarget.style.display = targetMode==='overall' ? 'block' : 'none';
+  E.paper1Target.style.display = targetMode==='paper1' ? 'block' : 'none';
+  E.paper2Target.style.display = targetMode==='paper2' ? 'block' : 'none';
 }
 
-function updateNotes(){
-  const subj = subjectSel.value;
-  if(NOTES[subj] !== undefined){
-    notesContent.innerHTML = NOTES[subj];
-  } else {
-    notesContent.textContent = 'No notes available for this subject.';
+function refresh(clear = false){
+  if(clear){
+    E.as.value = '';
+    [E.targetOverall,E.targetPaper1,E.targetPaper2,E.paper1Fixed,E.paper2Fixed].forEach(i => i.value = '');
   }
+  renderPredicted(); renderTargetLabels(); renderNotes(); resetOut(); view();
 }
 
-function buildSubjects(){
-  Object.keys(DATA).forEach(k=>{
-    const o = document.createElement('option');
-    o.value = k;
-    o.textContent = k;
-    subjectSel.appendChild(o);
-  });
-  subjectSel.value = Object.keys(DATA)[0];
+function setSeries(s){ series = s; refresh(true); }
+function setAction(a){ action = a; view(); resetOut(); }
+function setTargetMode(m){ targetMode = m; view(); resetOut(); }
+
+function calcPred(){
+  const asVal = +E.as.value;
+  if(!Number.isInteger(asVal) || asVal<0 || asVal>100) return alert('Enter AS score as integer 0 to 100');
+  const sd = subj(), estAS = pumToRaw(sd.as.anchors, asVal), ps = papers(), ins = [...E.predictedPapersArea.querySelectorAll('input')];
+  let a2 = 0;
+  for(let i=0;i<ps.length;i++){
+    const v = +ins[i].value, p = ps[i];
+    if(ins[i].value === '') return alert(`Enter raw for ${p.name}`);
+    if(!Number.isInteger(v) || v<0 || v>p.max) return alert(`Enter integer raw 0 to ${p.max} for ${p.name}`);
+    a2 += v;
+  }
+  const total = estAS + a2, pum = rawToPum(sd.alevel.anchors, total), g = grade(pum);
+  E.mainOutput.textContent = `${g} - ${pum} PUM`;
+  const pct = estAS ? Math.round(((a2 - estAS) / estAS) * 100) : null;
+  E.subOutput.textContent = `Total raw (AS est ${estAS} + A2 ${a2}) = ${total} / ${sd.alevel.max_raw} - ${pct===null?'N/A':pct>0?`${pct}% more than AS`:pct<0?`${Math.abs(pct)}% less than AS`:'Same as AS'}`;
 }
 
-function buildPredictedPapersUI(){
-  const papers = getPapers();
-  predictedPapersArea.innerHTML = '';
-
-  if(!papers || papers.length === 0){
-    predictedPapersArea.innerHTML = '<div class="small">No A2 paper configuration.</div>';
-    return;
-  }
-
-  papers.forEach((p)=>{
-    const row = document.createElement('div');
-    row.className = 'paper-row';
-
-    const title = document.createElement('div');
-    title.style.minWidth = '280px';
-    title.textContent = `Predicted ${p.name} raw (max: ${p.max})`;
-
-    const inp = document.createElement('input');
-    inp.type = 'number';
-    inp.step = '1';
-    inp.min = '0';
-    inp.max = p.max;
-    inp.placeholder = `0 to ${p.max}`;
-
-    row.appendChild(title);
-    row.appendChild(inp);
-    predictedPapersArea.appendChild(row);
-  });
+function calcOverall(){
+  const sd = subj(), asVal = +E.as.value, t = targetPum(E.targetOverall.value);
+  if(!Number.isInteger(asVal) || asVal<0 || asVal>100) return alert('Enter AS score as integer 0 to 100');
+  if(E.targetOverall.value.trim()==='') return alert('Enter target grade or integer PUM');
+  if(t===null) return alert('Unknown target');
+  const estAS = pumToRaw(sd.as.anchors, asVal), reqTotal = Math.ceil(pumToRaw(sd.alevel.anchors, t)), a2max = sd.alevel.max_raw - sd.as.max_raw, reqA2 = Math.ceil(reqTotal - estAS);
+  if(reqA2 <= 0) return (E.mainOutput.textContent='Already achieved', E.subOutput.textContent=`AS estimate ${estAS} already meets target ${t}`);
+  if(reqA2 > a2max) return (E.mainOutput.textContent='Impossible', E.subOutput.textContent=`Required A2 raw ${reqA2} exceeds A2 max ${a2max}`);
+  E.mainOutput.textContent = `${reqA2} raw (A2 required)`;
+  const pct = estAS ? Math.round(((reqA2 - estAS) / estAS) * 100) : null;
+  E.subOutput.textContent = `${pct===null?'N/A':pct>0?`${pct}% more than AS`:pct<0?`${Math.abs(pct)}% less than AS`:'Same as AS'}. Required total raw (AS + A2): ${reqTotal} / ${sd.alevel.max_raw}`;
 }
 
-function updateSeriesButtons(){
-  if(currentSeries === 'MJ'){
-    btnMJ.classList.add('active');
-    btnON.classList.remove('active');
-  } else {
-    btnON.classList.add('active');
-    btnMJ.classList.remove('active');
-  }
+function calcPaper(which){
+  const sd = subj(), ps = papers(), asVal = +E.as.value, tInput = which===0 ? E.targetPaper1 : E.targetPaper2, fixedInput = which===0 ? E.paper1Fixed : E.paper2Fixed, solved = ps[which], fixed = ps[1-which];
+  if(!Number.isInteger(asVal) || asVal<0 || asVal>100) return alert('Enter AS score as integer 0 to 100');
+  if(ps.length < 2) return (E.mainOutput.textContent='Error', E.subOutput.textContent='Need exactly 2 A2 papers configured');
+  const t = targetPum(tInput.value);
+  if(tInput.value.trim()==='') return alert('Enter target grade or integer PUM');
+  if(t===null) return alert('Unknown target');
+  const estAS = pumToRaw(sd.as.anchors, asVal), reqTotal = Math.ceil(pumToRaw(sd.alevel.anchors, t)), fixedRaw = +fixedInput.value, need = Math.ceil(reqTotal - estAS - fixedRaw);
+  if(!Number.isInteger(fixedRaw) || fixedRaw<0 || fixedRaw>fixed.max) return alert(`Enter integer raw 0 to ${fixed.max} for ${fixed.name}`);
+  if(need <= 0) return (E.mainOutput.textContent='Already achieved', E.subOutput.textContent='Known paper already covers the target.');
+  if(need > solved.max) return (E.mainOutput.textContent='Impossible', E.subOutput.textContent=`Needs ${need} in ${solved.name} (max ${solved.max}). Extra ${need-solved.max} cannot be covered.`);
+  E.mainOutput.textContent = `${need} raw needed in ${solved.name}`;
+  E.subOutput.textContent = `Required total raw (AS + A2): ${reqTotal} / ${sd.alevel.max_raw} (AS raw est: ${estAS}; fixed ${fixed.name}: ${fixedRaw})`;
 }
 
-function updateTargetButtonLabels(){
-  const papers = getPapers();
-  if(papers.length < 2) return;
+renderSubjects();
+refresh();
 
-  subPaper1.textContent = `${papers[0].name} target`;
-  subPaper2.textContent = `${papers[1].name} target`;
+E.subject.addEventListener('change', () => refresh(true));
+E.btnMJ.addEventListener('click', () => setSeries('MJ'));
+E.btnON.addEventListener('click', () => setSeries('ON'));
+E.btnPred.addEventListener('click', () => setAction('pred'));
+E.btnTarget.addEventListener('click', () => setAction('target'));
+E.subOverall.addEventListener('click', () => setTargetMode('overall'));
+E.subPaper1.addEventListener('click', () => setTargetMode('paper1'));
+E.subPaper2.addEventListener('click', () => setTargetMode('paper2'));
 
-  paper1FixedLabel.textContent = `Enter ${papers[1].name} raw (max: ${papers[1].max})`;
-  paper2FixedLabel.textContent = `Enter ${papers[0].name} raw (max: ${papers[0].max})`;
+E.targetOverall.addEventListener('input', () => syncInputs(E.targetOverall));
+E.targetPaper1.addEventListener('input', () => syncInputs(E.targetPaper1));
+E.targetPaper2.addEventListener('input', () => syncInputs(E.targetPaper2));
 
-  paper1Fixed.max = papers[1].max;
-  paper2Fixed.max = papers[0].max;
-
-  calcPaper1Target.textContent = `Calculate ${papers[0].name} needed`;
-  calcPaper2Target.textContent = `Calculate ${papers[1].name} needed`;
-}
-
-function updateTargetModeView(){
-  subOverall.classList.toggle('active', currentTargetMode === 'overall');
-  subPaper1.classList.toggle('active', currentTargetMode === 'paper1');
-  subPaper2.classList.toggle('active', currentTargetMode === 'paper2');
-
-  overallTarget.style.display = currentTargetMode === 'overall' ? 'block' : 'none';
-  paper1Target.style.display = currentTargetMode === 'paper1' ? 'block' : 'none';
-  paper2Target.style.display = currentTargetMode === 'paper2' ? 'block' : 'none';
-}
-
-function refreshAllUI(){
-  buildPredictedPapersUI();
-  updateTargetButtonLabels();
-  updateTargetModeView();
-  updateNotes();
-  resetOutputs();
-}
-
-function updateTargetInputsWithAchieved(finalPum){
-  const achievedText = pumToGrade(finalPum);
-  const numeric = s => /^[0-9]+$/.test((s || '').trim());
-  [targetOverall, targetPaper1, targetPaper2].forEach(inp=>{
-    if(!inp || !inp.value || inp.value.trim() === '') return;
-    inp.value = numeric(inp.value) ? String(finalPum) : achievedText;
-  });
-}
-
-buildSubjects();
-refreshAllUI();
-
-subjectSel.addEventListener('change', ()=>{
-  refreshAllUI();
-});
-
-btnMJ.addEventListener('click', ()=>{
-  currentSeries = 'MJ';
-  updateSeriesButtons();
-  refreshAllUI();
-});
-
-btnON.addEventListener('click', ()=>{
-  currentSeries = 'ON';
-  updateSeriesButtons();
-  refreshAllUI();
-});
-
-btnPred.addEventListener('click', ()=>{
-  btnPred.classList.add('active');
-  btnTarget.classList.remove('active');
-  predictedArea.style.display = 'block';
-  targetArea.style.display = 'none';
-  resetOutputs();
-});
-
-btnTarget.addEventListener('click', ()=>{
-  btnTarget.classList.add('active');
-  btnPred.classList.remove('active');
-  targetArea.style.display = 'block';
-  predictedArea.style.display = 'none';
-  updateTargetModeView();
-  resetOutputs();
-});
-
-subOverall.addEventListener('click', ()=>{
-  currentTargetMode = 'overall';
-  updateTargetModeView();
-  resetOutputs();
-});
-
-subPaper1.addEventListener('click', ()=>{
-  currentTargetMode = 'paper1';
-  updateTargetModeView();
-  resetOutputs();
-});
-
-subPaper2.addEventListener('click', ()=>{
-  currentTargetMode = 'paper2';
-  updateTargetModeView();
-  resetOutputs();
-});
-
-calcPred.addEventListener('click', ()=>{
-  const subjData = getSubjData();
-  const asVal = Number(asScoreInput.value);
-  if(!Number.isInteger(asVal) || asVal < 0 || asVal > 100){
-    alert('Enter AS score as integer 0 to 100');
-    return;
-  }
-
-  const estASraw = interpPumToRawNearest(subjData.as.anchors, asVal);
-  const papers = subjData.a2_papers || [];
-  const rows = predictedPapersArea.querySelectorAll('.paper-row');
-
-  let a2Sum = 0;
-  for(let i = 0; i < papers.length; i++){
-    const inp = rows[i].querySelector('input');
-    const p = papers[i];
-    const val = inp.value;
-
-    if(val === '' || val === undefined){
-      alert(`Enter raw for ${p.name}`);
-      return;
-    }
-
-    const raw = Math.floor(Number(val));
-    if(!Number.isInteger(raw) || raw < 0 || raw > p.max){
-      alert(`Enter integer raw 0 to ${p.max} for ${p.name}`);
-      return;
-    }
-
-    a2Sum += raw;
-  }
-
-  const totalRaw = estASraw + a2Sum;
-  const finalPum = interpRawToPum(subjData.alevel.anchors, totalRaw);
-  const grade = pumToGrade(finalPum);
-
-  mainOutput.textContent = `${grade} - ${finalPum} PUM`;
-
-  let pctText = 'N/A';
-  if(estASraw > 0){
-    const diff = a2Sum - estASraw;
-    const pct = Math.round((diff / estASraw) * 100);
-    pctText = pct > 0 ? `${pct}% more than AS` : pct < 0 ? `${Math.abs(pct)}% less than AS` : 'Same as AS';
-  }
-
-  subOutput.textContent = `Total raw (AS est ${estASraw} + A2 ${a2Sum}) = ${totalRaw} / ${subjData.alevel.max_raw} - ${pctText}`;
-  updateTargetInputsWithAchieved(finalPum);
-});
-
-calcOverall.addEventListener('click', ()=>{
-  const subjData = getSubjData();
-  const asVal = Number(asScoreInput.value);
-  if(!Number.isInteger(asVal) || asVal < 0 || asVal > 100){
-    alert('Enter AS score as integer 0 to 100');
-    return;
-  }
-
-  const estASraw = interpPumToRawNearest(subjData.as.anchors, asVal);
-  const targetPum = parseTargetPum(targetOverall.value);
-
-  if(targetOverall.value.trim() === ''){
-    alert('Enter target grade or integer PUM');
-    return;
-  }
-  if(targetPum === null){
-    alert('Unknown target');
-    return;
-  }
-
-  const reqTotalNearest = interpPumToRawNearest(subjData.alevel.anchors, targetPum);
-  if(reqTotalNearest === null){
-    mainOutput.textContent = 'Error';
-    subOutput.textContent = 'Missing data';
-    return;
-  }
-
-  const reqTotal = Math.ceil(reqTotalNearest);
-  const reqA2raw = Math.ceil(reqTotal - estASraw);
-  const a2max = subjData.alevel.max_raw - subjData.as.max_raw;
-
-  if(reqA2raw <= 0){
-    mainOutput.textContent = 'Already achieved';
-    subOutput.textContent = `AS estimate ${estASraw} already meets target ${targetPum}`;
-    return;
-  }
-
-  if(reqA2raw > a2max){
-    mainOutput.textContent = 'Impossible';
-    subOutput.textContent = `Required A2 raw ${reqA2raw} exceeds A2 max ${a2max}`;
-    return;
-  }
-
-  let pctText = 'N/A';
-  if(estASraw > 0){
-    const diff = reqA2raw - estASraw;
-    const pct = Math.round((diff / estASraw) * 100);
-    pctText = pct > 0 ? `${pct}% more than AS` : pct < 0 ? `${Math.abs(pct)}% less than AS` : 'Same as AS';
-  }
-
-  mainOutput.textContent = `${reqA2raw} raw (A2 required)`;
-  subOutput.textContent = `${pctText}. Required total raw (AS + A2): ${reqTotal} / ${subjData.alevel.max_raw}`;
-  updateTargetInputsWithAchieved(targetPum);
-});
-
-function calcPaperTargetMode(targetInputEl, fixedRawEl, solvedIndex){
-  const subjData = getSubjData();
-  const papers = subjData.a2_papers || [];
-
-  const asVal = Number(asScoreInput.value);
-  if(!Number.isInteger(asVal) || asVal < 0 || asVal > 100){
-    alert('Enter AS score as integer 0 to 100');
-    return;
-  }
-
-  if(papers.length < 2){
-    mainOutput.textContent = 'Error';
-    subOutput.textContent = 'Need exactly 2 A2 papers configured';
-    return;
-  }
-
-  const estASraw = interpPumToRawNearest(subjData.as.anchors, asVal);
-  const targetPum = parseTargetPum(targetInputEl.value);
-
-  if(targetInputEl.value.trim() === ''){
-    alert('Enter target grade or integer PUM');
-    return;
-  }
-  if(targetPum === null){
-    alert('Unknown target');
-    return;
-  }
-
-  const reqTotalNearest = interpPumToRawNearest(subjData.alevel.anchors, targetPum);
-  if(reqTotalNearest === null){
-    mainOutput.textContent = 'Error';
-    subOutput.textContent = 'Missing data';
-    return;
-  }
-
-  const reqTotal = Math.ceil(reqTotalNearest);
-  const fixedPaper = papers[1 - solvedIndex];
-  const solvedPaper = papers[solvedIndex];
-  const fixedRaw = Number(fixedRawEl.value);
-
-  if(!Number.isInteger(fixedRaw) || fixedRaw < 0 || fixedRaw > fixedPaper.max){
-    alert(`Enter integer raw 0 to ${fixedPaper.max} for ${fixedPaper.name}`);
-    return;
-  }
-
-  const requiredSolved = Math.ceil(reqTotal - estASraw - fixedRaw);
-
-  if(requiredSolved <= 0){
-    mainOutput.textContent = 'Already achieved';
-    subOutput.textContent = 'Known paper already covers the target.';
-    return;
-  }
-
-  if(requiredSolved > solvedPaper.max){
-    const extra = requiredSolved - solvedPaper.max;
-    mainOutput.textContent = 'Impossible';
-    subOutput.textContent = `Needs ${requiredSolved} in ${solvedPaper.name} (max ${solvedPaper.max}). Extra ${extra} cannot be covered.`;
-    return;
-  }
-
-  mainOutput.textContent = `${requiredSolved} raw needed in ${solvedPaper.name}`;
-  subOutput.textContent = `Required total raw (AS + A2): ${reqTotal} / ${subjData.alevel.max_raw} (AS raw est: ${estASraw}; fixed ${fixedPaper.name}: ${fixedRaw})`;
-  updateTargetInputsWithAchieved(targetPum);
-}
-
-calcPaper1Target.addEventListener('click', ()=>{
-  calcPaperTargetMode(targetPaper1, paper2Fixed, 0);
-});
-
-calcPaper2Target.addEventListener('click', ()=>{
-  calcPaperTargetMode(targetPaper2, paper1Fixed, 1);
-});
+E.calcPred.addEventListener('click', calcPred);
+E.calcOverall.addEventListener('click', calcOverall);
+E.calcPaper1Target.addEventListener('click', () => calcPaper(0));
+E.calcPaper2Target.addEventListener('click', () => calcPaper(1));
 </script>
 </body>
 </html>
